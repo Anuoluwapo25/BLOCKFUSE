@@ -13,7 +13,7 @@ def mostFreqElement(array):
         if vaule > maxFrequentElement:
             maxFrequentElement = vaule
             mostFrequentArray = key
-            
+    
     return mostFrequentArray
         
 array = [1, 2, 3, 2, 4, 5]
