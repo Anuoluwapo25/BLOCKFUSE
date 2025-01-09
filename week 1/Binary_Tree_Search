@@ -1,0 +1,63 @@
+def create_tree():
+    tree = {
+        1: [2, 3],
+        2: [4, 5],
+        3: [6, 7],
+        4: [None, None],
+        5: [None, None],
+        6: [None, None],
+        7: [None, None]
+    }
+    root = 1
+    return root, tree
+
+def dfs_find(current, target, tree):
+    if current is None:
+        return False
+    
+    if current == target:
+        return True
+    
+    left, right = tree[current]
+    
+    if left and dfs_find(left, target, tree):
+        return True
+    
+    if right and dfs_find(right, target, tree):
+        return True
+        
+    return False
+
+def bfs_find(root, target, tree):
+    if root is None:
+        return False
+    
+    queue = [root]
+    
+    while queue:
+        current = queue.pop(0)
+        
+        if current == target:
+            return True
+        
+        left, right = tree[current]
+        if left:
+            queue.append(left)
+        if right:
+            queue.append(right)
+    
+    return False
+
+if __name__ == "__main__":
+    root, tree = create_tree()
+    
+    test_values = [5, 9]
+ 
+    for target in test_values:
+
+        dfs_result = dfs_find(root, target, tree)
+        print(f"DFS: Value {target} {'found' if dfs_result else 'not found'}")
+        
+    
+        bfs_result = bfs_find(root, target, tree)
+        print(f"BFS: Value {target} {'found' if bfs_result else 'not found'}")
