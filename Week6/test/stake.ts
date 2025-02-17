@@ -17,6 +17,7 @@ describe("StakingToken", function() {
    
         const Stakingpool = await hre.ethers.getContractFactory("StakingPool");
         const stakingpool = await Stakingpool.deploy(stakeToken.target, rewardToken.target);
+        const stakingpool1 = await Stakingpool.deploy(stakeToken.target, rewardToken.target);
     
         return { stakeToken, rewardToken, stakingpool, owner, account1, account2 };
     }
@@ -43,7 +44,9 @@ describe("StakingToken", function() {
         
             console.log("Allowance after staking:", allowanceAfter.toString());
             console.log("Allowance be staking:", allowanceBefore.toString());
-            console.log("Staking info:", stakingpool.getStakeInfo);
+            const stakeInfo = await stakingpool.getStakeInfo(owner.address);
+            console.log("Staking info:", stakeInfo);
+
         });
 
         it("should check total staked amount", async function() {
@@ -64,7 +67,56 @@ describe("StakingToken", function() {
             
             expect(total).to.eq(spendAmount1 +spendAmount2);
         });
+        it("should only claim if Timestamp is greater than OR equals LOCK_PERIOD", async function () {
+            const { stakeToken, stakingpool, owner, account1} = await loadFixture(deployStake);
+
+            const spendAmountowner = hre.ethers.parseUnits("20", 18);
+            await stakeToken.connect(owner).approve(account1, spendAmountowner);
+            const allowance1 = await stakeToken.allowance(owner, account1)
+            await stakeToken.connect(owner).transfer(account1, spendAmountowner);
+            const bal = await stakeToken.balanceOf(account1);
+            console.log("allowance:", allowance1);
+            console.log("bal:", bal)
+            
+            const spendAmount = hre.ethers.parseUnits("15", 18);
+            await stakeToken.connect(account1).approve(stakingpool, spendAmount);
+            const allowance2 = await stakeToken.allowance(account1, stakingpool)
+            
+            console.log("allowance2:", allowance2)
+
+            const updatedBlock = await hre.ethers.provider.getBlock("latest");
+
+            const stake = await stakingpool.connect(account1).stake(spendAmount); 
+            console.log("Staked Amount:", stake);
+            const daysStaked = 7;
+            await hre.ethers.provider.send("evm_increaseTime", [daysStaked * 24 * 60 * 60]);
+            await hre.ethers.provider.send("evm_mine");
+
+            const REWARD_PER_DAY = hre.ethers.parseUnits("10", 18);
+            const rewardAmount = REWARD_PER_DAY * BigInt(daysStaked);
         
+            const rewards = await stakingpool.calculateRewards(account1);
+            console.log(rewards)
+            console.log("Calculated Rewards:", rewards.toString());
+        
+            expect(rewards).to.eq(rewardAmount); 
+        });
+        
+        it("should check if staker exist before unstaking", async function() {
+
+            const { stakeToken, stakingpool, owner } = await loadFixture(deployStake);
+        
+            const spendAmount = hre.ethers.parseUnits("15", 18);
+        
+            await stakeToken.connect(owner).approve(stakingpool, spendAmount);
+            await stakingpool.connect(owner).stake(spendAmount);
+
+            await hre.ethers.provider.send("evm_increaseTime", [7 * 24 * 60 * 60]);
+
+
+
+        })
+
     });
 
         

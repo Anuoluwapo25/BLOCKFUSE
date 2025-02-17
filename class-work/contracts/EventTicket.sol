@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract EventTicket is ERC20("EventTicket") {
+contract EventTicket is ERC20 Ownera {
     address public owner;
     uint256 public ticketPrice = 0.05 ether; 
     uint256 public totalTickets = 100;

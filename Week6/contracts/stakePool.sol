@@ -57,8 +57,10 @@ contract StakingPool is Ownable(msg.sender) {
         
         if (timeStaked < LOCK_PERIOD) return 0;
         
-        uint256 numberOfDays = timeStaked / 1 days;
-        uint256 rewardAmount = REWARD_PER_DAY * numberOfDays;
+        // uint256 numberOfDays = timeStaked / 86400;
+        // uint256 rewardAmount = REWARD_PER_DAY * numberOfDays;
+
+        uint256 rewardAmount = (REWARD_PER_DAY * timeStaked) / 86400;
         return rewardAmount;
     }
     
