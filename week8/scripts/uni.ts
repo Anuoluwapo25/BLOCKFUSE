@@ -12,9 +12,17 @@ const main = async () => {
     
     let AmtADesired = ethers.parseUnits('100000', 6);
     let AmtBDesired = ethers.parseUnits('100000', 18);
-    let AmtAMin = ethers.parseUnits('99000', 6);
-    let AmtBMin = ethers.parseUnits('99000', 18);
+    let AmtAMin = ethers.parseUnits('9900', 6);
+    let AmtBMin = ethers.parseUnits('9900', 18);
     let deadline = await helpers.time.latest() + 5000;
+    let amountIn = ethers.parseUnits('5000', 6);
+    let amountOutMin = ethers.parseUnits('500', 18);
+
+    const address = [
+        USDCAddress,
+        DAIAddress
+    ]
+
     
     await helpers.impersonateAccount(theAddressIFoundWithUSDCAndDAI);
     const impersonatedSigner = await ethers.getSigner(theAddressIFoundWithUSDCAndDAI);
@@ -65,7 +73,7 @@ const main = async () => {
     await lpToken.connect(impersonatedSigner).approve(UNIRouter, lpBalance);
     console.log("LP Token Approved for Removal");
     
-    console.log('---------------- Removing Liquidity ----------------');
+    console.log('-------------------------- Removing Liquidity ----------------');
     await uniswapContract.connect(impersonatedSigner).removeLiquidity(
         USDCAddress,
         DAIAddress,
@@ -81,6 +89,31 @@ const main = async () => {
     const daiBalFinal = await daiContract.balanceOf(impersonatedSigner.address);
     console.log('Final USDC Balance:', ethers.formatUnits(usdcBalFinal, 6));
     console.log('Final DAI Balance:', ethers.formatUnits(daiBalFinal, 18));
+
+
+
+
+    console.log("-------------------------- Before Swap-------")
+    await usdcContract.connect(impersonatedSigner).approve(UNIRouter, amountIn)
+    const BalanceofUSDC = await usdcContract.balanceOf(impersonatedSigner)
+    const BalDAI = await daiContract.balanceOf(impersonatedSigner)
+    console.log("-------------------------- Amountin approved-------")
+    console.log("--------------------------Amount Before Swap:", ethers.formatUnits(BalanceofUSDC, 6),  "--------------------------")
+    console.log("-------------------------- Amount of After Swap:", ethers.formatUnits(BalDAI, 6), "--------------------------")
+
+    await uniswapContract.connect(impersonatedSigner).swapExactTokensForTokens(
+        amountIn,
+        amountOutMin,
+        address,
+        impersonatedSigner.address,
+        deadline
+    );
+
+    console.log("Swaped sucessfully")
+    const BalanceofUSDCafter = await usdcContract.balanceOf(impersonatedSigner)
+    const BalDAIafter = await daiContract.balanceOf(impersonatedSigner)
+    console.log("-------------------------- Amount After Swap:", ethers.formatUnits(BalanceofUSDCafter, 6), "--------------------------")
+    console.log("-------------------------- Amount of After Swap:",  ethers.formatUnits(BalDAIafter, 6), "--------------------------")
 
 
    
@@ -148,7 +181,6 @@ const addLiquidityETH = async () => {
     return { lpTokenAddress, lpBalance, impersonatedSigner };
   };
     
-
   
 main().catch((error) => {
     console.error(error);
@@ -159,5 +191,7 @@ addLiquidityETH().catch((error) => {
     console.error(error);
     process.exitCode = 1;
 });
+
+
 
 
